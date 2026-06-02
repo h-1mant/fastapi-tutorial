@@ -6,7 +6,6 @@ class PostCreate(BaseModel):
     title: str = Field(description="Post Title", max_length=50)
     content: str = Field(description="Post Content", max_length=200)
     published: bool = Field(description="Post Publication Status", default=False)
-    user_id: Optional[int] = None
 
     model_config = {"from_attributes": True, "extra": "forbid"}
 
