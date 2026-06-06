@@ -1,0 +1,22 @@
+services:
+  api:
+    build: .
+    depends_on:
+      - postgres
+    ports:
+      - "80:8000"
+    # command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    env_file:
+      - .env
+  postgres:
+    image: postgres
+    environment:
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_USERNAME=${POSTGRES_USERNAME}
+      - POSTGRES_DB=${POSTGRES_DB}
+      - DATABASE_HOSTNAME=${DATABASE_HOSTNAME}
+    volumes:
+      - postgres-db:/var/lib/postgresql
+volumes:
+  postgres-db: 
+

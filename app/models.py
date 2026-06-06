@@ -23,7 +23,7 @@ class Post(Base):
     created_ts: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     updated_ts: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True, default=None)
 
-    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
     user: Mapped["User"] = relationship(back_populates="posts")
 
 class User(Base):

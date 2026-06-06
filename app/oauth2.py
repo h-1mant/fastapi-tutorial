@@ -6,6 +6,8 @@ from typing import Annotated
 from app.schemas import TokenData
 from fastapi.security import OAuth2PasswordBearer
 
+# this just extracts the Bearer token from Authorization header
+# so that `get_current_user` can receive it to call `verify_access_token`
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
 
 def create_access_token(data: dict):
@@ -44,7 +46,10 @@ def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]) -> TokenData
 # Create an OAuth2 Dependency to protect endpoints
 OAuth2Dep = Annotated[TokenData, Depends(get_current_user)]
 
-
+def _auth_headers(user_id: int = 1):
+    """helper function to bypass login functionality by adding a dummy Authorization header"""
+    token = create_access_token({"user_id": user_id})
+    return {"Authorization": f"Bearer {token}"}
 
 
 
