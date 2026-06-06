@@ -39,6 +39,12 @@ class UserResponse(BaseModel):
 class UserLogin(UserCreate):
     pass
 
+class UserPasswordUpdate(BaseModel):
+    current_password: str
+    new_password: str
+
+    model_config = {"extra": "forbid"}
+
 
 class TokenResponse(BaseModel):
     access_token: str

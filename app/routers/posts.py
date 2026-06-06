@@ -4,7 +4,7 @@ from datetime import datetime, timezone
 from fastapi import APIRouter, HTTPException, status
 from sqlalchemy import select
 from app.schemas import PostResponse, PostCreate, PostUpdate
-from app.models import Post, User
+from app.models import Post
 from app.db_connection import SessionDep
 from app.oauth2 import OAuth2Dep
 
@@ -80,11 +80,8 @@ def update_post(id: int, updated_post: PostUpdate, session: SessionDep, token_da
 # Delete User's Post
 @router.delete("/{id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_post(id: int, session: SessionDep, token_data: OAuth2Dep):
-    try:
-        post = session.query(User).filter(User.id == token_data.id).filter(Post.id == id).first()
-        if not post:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Your Post: {id} not found")
-        session.delete(post)
-        session.commit()
-    except Exception as e:
-        raise HTTPException(404,detail=str(e))
+    post = session.scalars(select(Post).where(Post.id == id, Post.user_id == token_data.id)).first()
+    if not post:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Your Post: {id} not found")
+    session.delete(post)
+    session.commit()

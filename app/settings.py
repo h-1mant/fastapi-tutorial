@@ -11,7 +11,8 @@ class Settings(BaseSettings):
 
     # Postgres 
     conn_string: str
-
+    test_db_conn_string: str
+    
     # OAuth2
     secret_key: str
     algorithm: str
