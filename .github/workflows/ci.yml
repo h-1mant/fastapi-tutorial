@@ -1,0 +1,77 @@
+name: CI - Install, Migrate and Test
+
+on:
+  push:
+    branches:
+      - development
+
+jobs:
+  build-and-test:
+    name: Install, Migrate and Test
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres
+        env:
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          POSTGRES_USER: ${{ secrets.POSTGRES_USERNAME }}
+          POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      postgres-test:
+        image: postgres
+        env:
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          POSTGRES_USER: ${{ secrets.POSTGRES_USERNAME }}
+          POSTGRES_DB: ${{ secrets.POSTGRES_TEST_DB }}
+        ports:
+          - 5433:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      CONN_STRING: ${{ secrets.CONN_STRING }}
+      POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+      POSTGRES_USERNAME: ${{ secrets.POSTGRES_USERNAME }}
+      POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
+      DATABASE_HOSTNAME: ${{ secrets.DATABASE_HOSTNAME }}
+      SECRET_KEY: ${{ secrets.SECRET_KEY }}
+      ALGORITHM: ${{ secrets.ALGORITHM }}
+      ACCESS_TOKEN_EXPIRE_MINUTES: ${{ secrets.ACCESS_TOKEN_EXPIRE_MINUTES }}
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+
+      - name: Upgrade pip
+        run: pip install --upgrade pip
+
+      - name: Install Dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run Alembic migrations (main DB)
+        run: alembic upgrade head
+
+      - name: Run Alembic migrations (test DB)
+        env:
+          CONN_STRING: ${{ secrets.TEST_DB_CONN_STRING }}
+        run: alembic upgrade head
+
+      - name: Run tests
+        env:
+          TEST_DB_CONN_STRING: ${{ secrets.TEST_DB_CONN_STRING }}
+        run: pytest -v
+
+
+
