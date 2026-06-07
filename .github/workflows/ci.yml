@@ -1,0 +1,42 @@
+name: CI - Install, Migrate and Test
+
+on:
+  push:
+    branches:
+      - development
+
+jobs:
+  build-and-test:
+    name: Install, Migrate and Test
+    runs-on: ubuntu-latest
+    env:
+      CONN_STRING: ${{ secrets.CONN_STRING }}
+      POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+      POSTGRES_USERNAME: ${{ secrets.POSTGRES_USERNAME }}
+      POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
+      DATABASE_HOSTNAME: ${{ secrets.DATABASE_HOSTNAME }}
+      SECRET_KEY: ${{ secrets.SECRET_KEY }}
+      ALGORITHM: ${{ secrets.ALGORITHM }}
+      ACCESS_TOKEN_EXPIRE_MINUTES: ${{ secrets.ACCESS_TOKEN_EXPIRE_MINUTES }}
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Install Dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run Alembic migrations (main DB)
+        run: alembic upgrade head
+
+      - name: Run Alembic migrations (test DB)
+        env:
+          CONN_STRING: ${{ secrets.TEST_DB_CONN_STRING }}
+        run: alembic upgrade head
+
+      - name: Run tests
+        env:
+          TEST_DB_CONN_STRING: ${{ secrets.TEST_DB_CONN_STRING }}
+        run: pytest -v
+
+
+
